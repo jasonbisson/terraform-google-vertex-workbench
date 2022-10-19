@@ -17,7 +17,7 @@ Basic usage of this module is as follows:
 
 ```hcl
 module "vertex_workbench" {
-  source  = "terraform-google-modules/vertex-workbench/google"
+  source  = "github.com/jasonbisson/vertex-workbench"
   version = "~> 0.1"
 }
 ```
