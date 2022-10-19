@@ -4,11 +4,11 @@ This module was generated from [terraform-google-module-template](https://github
 
 The resources/services/activations/deletions that this module will create/trigger are:
 
-- Create a project 
+- Create a project
 - Create a service account for Vertex Workbench
 - Create a GCS bucket
 - Create a isolated VPC Network
-- Create multiple private DNS zones for googleapis and notebook domains 
+- Create multiple private DNS zones for googleapis and notebook domains
 - Updates Secure boot flag via Compute engine
 
 ## Usage
@@ -38,8 +38,8 @@ Functional examples are included in the
 | environment | Environment tag to help identify the entire deployment | `string` | n/a | yes |
 | folder\_id | The folder to deploy project in | `string` | n/a | yes |
 | gpu\_type | GPU Type | `string` | `"NVIDIA_TESLA_T4"` | no |
-| install\_gpu\_driver | Install GPU drivers | `string` | n/a | yes |
-| instance\_owners | User Email address that will own Vertex Workbench | `list` | n/a | yes |
+| install\_gpu\_driver | Install GPU drivers | `string` | `true` | no |
+| instance\_owners | User Email address that will own Vertex Workbench | `list(any)` | n/a | yes |
 | labels | Labels, provided as a map | `map(any)` | `{}` | no |
 | machine\_type | Machine type to application | `string` | `"n1-standard-1"` | no |
 | org\_id | The numeric organization id | `string` | n/a | yes |

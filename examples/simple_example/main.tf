@@ -15,8 +15,11 @@
  */
 
 module "vertex_workbench" {
-  source = "../.."
-
-  project_id  = var.project_id
-  bucket_name = var.bucket_name
+  source          = "../.."
+  org_id          = var.org_id
+  billing_account = var.billing_account
+  folder_id       = var.folder_id
+  environment     = var.environment
+  project_name    = var.project_name
+  instance_owners = var.instance_owners
 }

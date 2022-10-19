@@ -1,5 +1,5 @@
 /**
- * Copyright 2021 Google LLC
+ * Copyright 2019 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-variable "project_id" {
-  description = "The ID of the project in which to provision resources."
+variable "org_id" {
+  description = "The numeric organization id"
   type        = string
 }
 
-variable "bucket_name" {
-  description = "The name of the bucket to create."
+variable "folder_id" {
+  description = "The folder to deploy project in"
   type        = string
+}
+
+variable "billing_account" {
+  description = "The billing account id associated with the project, e.g. XXXXXX-YYYYYY-ZZZZZZ"
+  type        = string
+}
+
+variable "project_name" {
+  description = "Prefix of Google Project name"
+  type        = string
+}
+
+variable "environment" {
+  description = "Environment tag to help identify the entire deployment"
+  type        = string
+}
+
+variable "instance_owners" {
+  description = "User Email address that will own Vertex Workbench"
+  type        = list(any)
 }

@@ -71,6 +71,7 @@ variable "gpu_type" {
 variable "install_gpu_driver" {
   description = "Install GPU drivers"
   type        = string
+  default     = true
 }
 
 variable "disk_size_gb" {
