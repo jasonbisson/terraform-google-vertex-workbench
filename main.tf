@@ -128,7 +128,7 @@ resource "google_compute_firewall" "googleapi_egress" {
   destination_ranges = ["199.36.153.8/30"]
   allow {
     protocol = "tcp"
-    ports    = ["443"]
+    ports    = ["443", "8080", "80"]
   }
 }
 

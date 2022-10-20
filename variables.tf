@@ -99,7 +99,8 @@ variable "labels" {
 variable "source_image_family" {
   description = "The OS Image family"
   type        = string
-  default     = "common-container-notebooks-debian-10"
+  default     = "common-cpu-notebooks-ubuntu-2004"
+  #gcloud compute images list --project deeplearning-platform-release
 }
 
 variable "source_image_project" {
