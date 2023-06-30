@@ -31,6 +31,7 @@ variable "billing_account" {
 variable "project_name" {
   description = "Prefix of Google Project name"
   type        = string
+  default = "prj"
 }
 
 variable "environment" {

@@ -1,6 +1,6 @@
 # terraform-google-vertex-workbench
 
-This module was generated from [terraform-google-module-template](https://github.com/terraform-google-modules/terraform-google-module-template/), which by default generates a module that creates an isolated Vertex Workbench to provide a tactical solution to enable Secure Boot and GPUs. A a strategic solution will come out in the near future, but provides an option to keep moving forward.
+This module creates an isolated Vertex Workbench to provide a tactical solution to enable Secure Boot and GPUs. When the Vertex Workbench product is updated to support the combination of Secure Boot & GPUs the repo will be updated to eliminate the tactical components and focus on secure Workbench deployment.
 
 The resources/services/activations/deletions that this module will create/trigger are:
 
@@ -9,6 +9,7 @@ The resources/services/activations/deletions that this module will create/trigge
 - Create a GCS bucket
 - Create a isolated VPC Network
 - Create multiple private DNS zones for googleapis and notebook domains
+- Creates a Vertex Workbench instances within isolated network
 - Updates Secure boot flag via Compute engine
 
 ## Usage
@@ -68,24 +69,26 @@ The following dependencies must be available:
 
 ### Service Account
 
-A service account with the following roles must be used to provision
+The Terraform service account with the following roles must be used to provision
 the resources of this module:
 
 - Storage Admin: `roles/storage.admin`
-
-The [Project Factory module][project-factory-module] and the
-[IAM module][iam-module] may be used in combination to provision a
-service account with the necessary roles applied.
+- IAM Admin: ``
+- Compute Admin: ``
+- Vertex Admin:
 
 ### APIs
 
 A project with the following APIs enabled must be used to host the
 resources of this module:
 
-- Google Cloud Storage JSON API: `storage-api.googleapis.com`
+iam.googleapis.com
+compute.googleapis.com
+dns.googleapis.com
+notebooks.googleapis.com
+containerregistry.googleapis.com
+storage.googleapis.com
 
-The [Project Factory module][project-factory-module] can be used to
-provision a project with the necessary APIs enabled.
 
 ## Contributing
 

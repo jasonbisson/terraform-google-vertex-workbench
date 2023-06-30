@@ -17,5 +17,5 @@ sleep 180m
 sudo shutdown
 }
 
-sign_gpu
+#sign_gpu
 
