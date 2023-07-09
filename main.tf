@@ -18,7 +18,7 @@ module "project" {
   source  = "terraform-google-modules/project-factory/google"
   version = "~> 11.0"
 
-  name              = "${var.project_name}-${random_id.random_suffix.hex}"
+  name              = "${var.project_name}-${var.environment}-${random_id.random_suffix.hex}"
   random_project_id = "false"
   org_id            = var.org_id
   folder_id         = var.folder_id
@@ -30,6 +30,7 @@ module "project" {
     "dns.googleapis.com",
     "notebooks.googleapis.com",
     "containerregistry.googleapis.com",
+    "aiplatform.googleapis.com",
     "storage.googleapis.com"
   ]
 }
@@ -69,6 +70,12 @@ resource "google_project_iam_member" "notebook_iam_compute" {
   member  = "serviceAccount:${google_service_account.main.email}"
 }
 
+resource "google_project_iam_member" "source_repo" {
+  project = module.project.project_id
+  role    = "roles/source.reader"
+  member  = "serviceAccount:${google_service_account.main.email}"
+}
+
 resource "google_project_iam_member" "notebook_iam_serviceaccount" {
   project = module.project.project_id
   role    = "roles/iam.serviceAccountUser"
@@ -101,7 +108,7 @@ resource "google_compute_firewall" "egress" {
   direction          = "EGRESS"
   destination_ranges = ["0.0.0.0/0"]
   deny {
-    protocol = "tcp"
+    protocol = "all"
   }
 }
 
@@ -114,7 +121,7 @@ resource "google_compute_firewall" "ingress" {
   direction     = "INGRESS"
   source_ranges = ["0.0.0.0/0"]
   deny {
-    protocol = "tcp"
+    protocol = "all"
   }
 }
 
@@ -132,6 +139,31 @@ resource "google_compute_firewall" "googleapi_egress" {
   }
 }
 
+resource "google_compute_router" "vpc-router" {
+  name    = "${var.environment}-${random_id.random_suffix.hex}"
+  network = google_compute_network.vpc_network.name
+  region = var.region 
+  project  =  module.project.project_id
+  depends_on = [google_compute_network.vpc_network]  
+}  
+
+
+resource "google_compute_router_nat" "nat" {
+  name                                = "${var.environment}-${random_id.random_suffix.hex}"
+  project                             = module.project.project_id
+  router                              = google_compute_router.vpc-router.name
+  region                              = var.region 
+  nat_ip_allocate_option              = "AUTO_ONLY"
+  source_subnetwork_ip_ranges_to_nat  = "ALL_SUBNETWORKS_ALL_IP_RANGES"
+  enable_dynamic_port_allocation      = true
+  enable_endpoint_independent_mapping = false
+
+  log_config {
+    enable = true
+    filter = "ERRORS_ONLY"
+  }
+  depends_on = [google_compute_network.vpc_network]  
+}
 
 resource "google_storage_bucket" "bucket" {
   project                     = module.project.project_id
