@@ -31,6 +31,8 @@ module "project" {
     "notebooks.googleapis.com",
     "containerregistry.googleapis.com",
     "aiplatform.googleapis.com",
+    "networkservices.googleapis.com",
+    "certificatemanager.googleapis.com",
     "storage.googleapis.com"
   ]
 }
@@ -89,14 +91,25 @@ resource "google_compute_network" "vpc_network" {
   mtu                     = 1460
 }
 
-resource "google_compute_subnetwork" "subnet" {
+resource "google_compute_subnetwork" "workbench" {
   project                  = module.project.project_id
-  name                     = "${var.environment}-${random_id.random_suffix.hex}"
+  name                     = "${var.environment}-${random_id.random_suffix.hex}-workbench"
   ip_cidr_range            = "10.2.0.0/16"
   region                   = var.region
   private_ip_google_access = true
   network                  = google_compute_network.vpc_network.name
 
+}
+
+
+resource "google_compute_subnetwork" "proxy" {
+  project       = module.project.project_id
+  name          = "${var.environment}-${random_id.random_suffix.hex}-web-proxy"
+  network       = google_compute_network.vpc_network.name
+  region        = var.region
+  ip_cidr_range = "192.168.0.0/23"
+  purpose       = "REGIONAL_MANAGED_PROXY"
+  role          = "ACTIVE"
 }
 
 resource "google_compute_firewall" "egress" {
@@ -139,31 +152,6 @@ resource "google_compute_firewall" "googleapi_egress" {
   }
 }
 
-resource "google_compute_router" "vpc-router" {
-  name    = "${var.environment}-${random_id.random_suffix.hex}"
-  network = google_compute_network.vpc_network.name
-  region = var.region 
-  project  =  module.project.project_id
-  depends_on = [google_compute_network.vpc_network]  
-}  
-
-
-resource "google_compute_router_nat" "nat" {
-  name                                = "${var.environment}-${random_id.random_suffix.hex}"
-  project                             = module.project.project_id
-  router                              = google_compute_router.vpc-router.name
-  region                              = var.region 
-  nat_ip_allocate_option              = "AUTO_ONLY"
-  source_subnetwork_ip_ranges_to_nat  = "ALL_SUBNETWORKS_ALL_IP_RANGES"
-  enable_dynamic_port_allocation      = true
-  enable_endpoint_independent_mapping = false
-
-  log_config {
-    enable = true
-    filter = "ERRORS_ONLY"
-  }
-  depends_on = [google_compute_network.vpc_network]  
-}
 
 resource "google_storage_bucket" "bucket" {
   project                     = module.project.project_id
@@ -204,7 +192,7 @@ resource "google_notebooks_instance" "vertex_workbench_instance" {
   boot_disk_type    = var.disk_type
   boot_disk_size_gb = var.disk_size_gb
   network           = google_compute_network.vpc_network.id
-  subnet            = google_compute_subnetwork.subnet.id
+  subnet            = google_compute_subnetwork.workbench.id
   no_public_ip      = true
   # If true, forces to use an SSH tunnel.
   no_proxy_access = false
