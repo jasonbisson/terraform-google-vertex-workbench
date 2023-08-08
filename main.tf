@@ -153,6 +153,21 @@ resource "google_compute_firewall" "googleapi_egress" {
 }
 
 
+resource "google_compute_firewall" "secure_web_proxy_egress" {
+  project            = module.project.project_id
+  name               = "secure-web-proxy"
+  description        = "Allow secure web proxy connectivity ${var.environment}"
+  network            = google_compute_network.vpc_network.name
+  priority           = 998
+  direction          = "EGRESS"
+  destination_ranges = ["10.2.0.0/16"]
+  allow {
+    protocol = "tcp"
+    ports    = ["443"]
+  }
+}
+
+
 resource "google_storage_bucket" "bucket" {
   project                     = module.project.project_id
   name                        = "${module.project.project_id}-${random_id.random_suffix.hex}"
@@ -198,11 +213,11 @@ resource "google_notebooks_instance" "vertex_workbench_instance" {
   no_proxy_access = false
   instance_owners = var.instance_owners
 
-
   metadata = {
     notebook-disable-root      = "true"
     notebook-disable-downloads = "true"
     notebook-disable-nbconvert = "true"
+    notebook-upgrade-schedule  = "00 19 * * SUN"
   }
 
   depends_on = [google_storage_bucket.bucket, time_sleep.wait_for_org_policy]
