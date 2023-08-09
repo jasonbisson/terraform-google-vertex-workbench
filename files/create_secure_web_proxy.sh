@@ -83,7 +83,7 @@ description: Allow github.com
 enabled: true
 priority: 1
 basicProfile: ALLOW
-sessionMatcher: host() == 'github.com'
+sessionMatcher: host().endsWith('.org') || host().endsWith('.com')
 EOF
   check_exit
   cp $HOME/${RULE_FILE}.template $HOME/${RULE_FILE}
