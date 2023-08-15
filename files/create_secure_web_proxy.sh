@@ -75,15 +75,39 @@ EOF
   check_exit
 }
 
+function create_url_list() {
+cat <<EOF >$HOME/${URL_FILE}.template
+name: projects/PROJECT_ID/locations/REGION/urlLists/URL_NAME
+values:
+  - "github.com"
+  - "pypi.org"
+  - "pypi.python.org"
+  - "files.pythonhosted.org"
+  - "packaging.python.org"
+EOF
+check_exit
+cp $HOME/${URL_FILE}.template $HOME/${URL_FILE}
+check_exit
+sed -i '' "s/PROJECT_ID/${PROJECT_ID}/" $HOME/${URL_FILE}
+check_exit
+sed -i '' "s/REGION/${REGION}/" $HOME/${URL_FILE}
+check_exit
+sed -i '' "s/URL_NAME/${URL_NAME}/" $HOME/${URL_FILE}
+check_exit
+
+gcloud network-security url-lists import ${URL_NAME} --location=${REGION} --project=${PROJECT_ID} --source="$HOME/${URL_FILE}"
+
+}
+
 function create_rule_to_secure_web_gateway_policy() {
 
 cat <<EOF >$HOME/${RULE_FILE}.template
 name: projects/PROJECT_ID/locations/REGION/gatewaySecurityPolicies/POLICY_NAME/rules/RULE_NAME
-description: Allow github.com
+description: Allow external repositories
 enabled: true
 priority: 1
 basicProfile: ALLOW
-sessionMatcher: host().endsWith('.org') || host().endsWith('.com')
+sessionMatcher: "inUrlList(host(), 'projects/PROJECT_ID/locations/REGION/urlLists/URL_NAME')"
 EOF
   check_exit
   cp $HOME/${RULE_FILE}.template $HOME/${RULE_FILE}
@@ -141,5 +165,6 @@ check_exit
 check_empty_variables
 create_certificate
 create_secure_web_gateway_policy
+create_url_list
 create_rule_to_secure_web_gateway_policy
 create_secure_web_gateway

@@ -43,7 +43,12 @@ function check_exit() {
 }
 
 function destroy_secure_web_gateway() {
-  gcloud network-services gateways delete $GATEWAY_NAME --location=${REGION}
+  gcloud network-services gateways delete ${GATEWAY_NAME} --location=${REGION}
+  check_exit
+}
+
+function destroy_url_list() {
+  gcloud network-security url-lists delete ${URL_NAME} --location=${REGION} 
   check_exit
 }
 
@@ -58,12 +63,14 @@ function destroy_secure_web_gateway_policy() {
 }
 
 function destroy_certificate() {
-  gcloud certificate-manager certificates delete $CERTIFICATE_NAME --location=$REGION
+  gcloud certificate-manager certificates delete ${CERTIFICATE_NAME} --location=$REGION
   check_exit
 }
 
 check_empty_variables
-destroy_secure_web_gateway
+#destroy_secure_web_gateway
+destroy_url_list
+exit
 destroy_rule_to_secure_web_gateway_policy
 destroy_secure_web_gateway_policy
 destroy_certificate
