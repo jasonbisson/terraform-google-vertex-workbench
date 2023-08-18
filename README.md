@@ -94,11 +94,10 @@ The following dependencies must be available:
 
 The account used for the deployment will require the following roles:
 
-```
 - Project Creator 
 - Project Deleter
 - Billing User
-```
+
 
 ### APIs
 
