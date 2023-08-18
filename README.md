@@ -1,6 +1,6 @@
 # terraform-google-vertex-workbench
 
-This module creates an isolated Vertex Workbench to provide a tactical solution to enable Secure Boot and GPUs. When the Vertex Workbench product is updated to support the combination of Secure Boot & GPUs the repo will be updated to eliminate the tactical components and focus on secure Workbench deployment.
+This module creates an isolated Vertex Workbench to provide a tactical solution to enable Secure Boot and GPUs. When the Vertex Workbench product is updated to support the combination of Secure Boot & GPUs the repo will be updated to eliminate the tactical components and focus on a secure Workbench deployment.
 
 The resources/services/activations/deletions that this module will create/trigger are:
 
@@ -11,20 +11,43 @@ The resources/services/activations/deletions that this module will create/trigge
 - Create multiple private DNS zones for googleapis and notebook domains
 - Creates a Vertex Workbench instances within isolated network
 - Updates Secure boot flag via Compute engine
+- Optional Secure Web Proxy script to allow code downloads from 
 
 ## Usage
 
-Basic usage of this module is as follows:
+## Usage
+1. Clone repo
+```
+git clone https://github.com/jasonbisson/terraform-google-vertex-workbench.git
 
-```hcl
-module "vertex_workbench" {
-  source  = "github.com/jasonbisson/vertex-workbench"
-  version = "~> 0.1"
-}
 ```
 
-Functional examples are included in the
-[examples](./examples/) directory.
+2. Rename and update required variables in terraform.tvfars.template
+```
+mv terraform.tfvars.template terraform.tfvars
+#Update required variables
+```
+3. Execute Terraform commands with existing identity (human or service account) to build Vertex Workbench Infrastructure 
+
+```
+cd ~/terraform-google-vertex-workbench/
+terraform init
+terraform plan
+terraform apply
+```
+
+4. Optional deployment of Secure Web Proxy
+```
+Create:
+cd ~/terraform-google-vertex-workbench/files 
+mv source.env.template source.env
+##Update required variables
+./create_secure_web_proxy.sh --project_id <Vertex Workbench Project ID >
+
+Destroy if you don't need or want it:
+./destroy_secure_web_proxy.sh --project_id <Vertex Workbench Project ID >
+
+```
 
 <!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
 ## Inputs
@@ -67,15 +90,15 @@ The following dependencies must be available:
 - [Terraform][terraform] v0.13 or above
 - [Terraform Provider for GCP][terraform-provider-gcp] plugin v3.0 or above
 
-### Service Account
+### Deployment Account
 
-The Terraform service account with the following roles must be used to provision
-the resources of this module:
+The account used for the deployment will require the following roles:
 
-- Storage Admin: `roles/storage.admin`
-- IAM Admin: ``
-- Compute Admin: ``
-- Vertex Admin:
+```
+- Project Creator 
+- Project Deleter
+- Billing User
+```
 
 ### APIs
 
@@ -87,6 +110,9 @@ compute.googleapis.com
 dns.googleapis.com
 notebooks.googleapis.com
 containerregistry.googleapis.com
+aiplatform.googleapis.com
+networkservices.googleapis.com
+certificatemanager.googleapis.com
 storage.googleapis.com
 
 
