@@ -47,13 +47,13 @@ function destroy_secure_web_gateway() {
   check_exit
 }
 
-function destroy_url_list() {
-  gcloud network-security url-lists delete ${URL_NAME} --location=${REGION} 
+function destroy_rule_to_secure_web_gateway_policy() {
+  gcloud network-security gateway-security-policies rules delete ${RULE_NAME} --location=${REGION} --gateway-security-policy=${POLICY_NAME}
   check_exit
 }
 
-function destroy_rule_to_secure_web_gateway_policy() {
-  gcloud network-security gateway-security-policies rules delete ${RULE_NAME} --location=${REGION} --gateway-security-policy=${POLICY_NAME}
+function destroy_url_list() {
+  gcloud network-security url-lists delete ${URL_NAME} --location=${REGION} 
   check_exit
 }
 
@@ -68,9 +68,8 @@ function destroy_certificate() {
 }
 
 check_empty_variables
-#destroy_secure_web_gateway
-destroy_url_list
-exit
+destroy_secure_web_gateway
 destroy_rule_to_secure_web_gateway_policy
+destroy_url_list
 destroy_secure_web_gateway_policy
 destroy_certificate

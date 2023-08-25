@@ -22,7 +22,7 @@
 source source.env
 
 function check_empty_variables() {
-  variables=(PROJECT_ID NETWORK_NAME REGION DOMAINNAME CERTIFICATE_NAME KEY_NAME POLICY_NAME POLICY_FILE RULE_NAME RULE_FILE GATEWAY_FILE GATEWAY_NAME)
+  variables=(PROJECT_ID NETWORK_NAME REGION DOMAINNAME CERTIFICATE_NAME KEY_NAME POLICY_NAME POLICY_FILE RULE_NAME RULE_FILE GATEWAY_FILE GATEWAY_NAME URL_NAME URL_FILE)
 
   for variable in "${variables[@]}"; do
     if [ -z "${!variable}" ]; then
@@ -120,7 +120,8 @@ EOF
   check_exit
   sed -i '' "s/RULE_NAME/${RULE_NAME}/" $HOME/${RULE_FILE}
   check_exit
-
+  sed -i '' "s/URL_NAME/${URL_NAME}/" $HOME/${RULE_FILE}
+  check_exit
   gcloud network-security gateway-security-policies rules import ${RULE_NAME} --source=$HOME/${RULE_FILE} --location=${REGION} --gateway-security-policy=${POLICY_NAME}
   check_exit
 
