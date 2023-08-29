@@ -104,15 +104,15 @@ The account used for the deployment will require the following roles:
 A project with the following APIs enabled must be used to host the
 resources of this module:
 
-iam.googleapis.com
-compute.googleapis.com
-dns.googleapis.com
-notebooks.googleapis.com
-containerregistry.googleapis.com
-aiplatform.googleapis.com
-networkservices.googleapis.com
-certificatemanager.googleapis.com
-storage.googleapis.com
+- iam.googleapis.com
+- compute.googleapis.com
+- dns.googleapis.com
+- notebooks.googleapis.com
+- containerregistry.googleapis.com
+- aiplatform.googleapis.com
+- networkservices.googleapis.com
+- certificatemanager.googleapis.com
+- storage.googleapis.com
 
 
 ## Contributing
