@@ -84,6 +84,7 @@ values:
   - "pypi.python.org"
   - "files.pythonhosted.org"
   - "packaging.python.org"
+  - "cloud.r-project.org"
 EOF
 check_exit
 cp $HOME/${URL_FILE}.template $HOME/${URL_FILE}
