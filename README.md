@@ -100,9 +100,11 @@ The account used for the deployment will require the following roles:
 
 
 ### APIs
+Since a project is created by the Project Factory module, you must activate the following APIs on the base project where the Service Account was created:
+- cloudresourcemanager.googleapis.com 
+- cloudbilling.googleapis.com
 
-A project with the following APIs enabled must be used to host the
-resources of this module:
+A project will be created with the following APIs will be created:
 
 - iam.googleapis.com
 - compute.googleapis.com
