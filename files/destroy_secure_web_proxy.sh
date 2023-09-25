@@ -43,27 +43,27 @@ function check_exit() {
 }
 
 function destroy_secure_web_gateway() {
-  gcloud network-services gateways delete ${GATEWAY_NAME} --location=${REGION}
+  gcloud network-services gateways delete ${GATEWAY_NAME} --location=${REGION} --project=${PROJECT_ID}
   check_exit
 }
 
 function destroy_rule_to_secure_web_gateway_policy() {
-  gcloud network-security gateway-security-policies rules delete ${RULE_NAME} --location=${REGION} --gateway-security-policy=${POLICY_NAME}
+  gcloud network-security gateway-security-policies rules delete ${RULE_NAME} --location=${REGION} --gateway-security-policy=${POLICY_NAME} --project=${PROJECT_ID}
   check_exit
 }
 
 function destroy_url_list() {
-  gcloud network-security url-lists delete ${URL_NAME} --location=${REGION} 
+  gcloud network-security url-lists delete ${URL_NAME} --location=${REGION} --project=${PROJECT_ID}
   check_exit
 }
 
 function destroy_secure_web_gateway_policy() {
-  gcloud network-security gateway-security-policies delete ${POLICY_NAME} --location=${REGION}
+  gcloud network-security gateway-security-policies delete ${POLICY_NAME} --location=${REGION} --project=${PROJECT_ID}
   check_exit
 }
 
 function destroy_certificate() {
-  gcloud certificate-manager certificates delete ${CERTIFICATE_NAME} --location=$REGION
+  gcloud certificate-manager certificates delete ${CERTIFICATE_NAME} --location=$REGION --project=${PROJECT_ID}
   check_exit
 }
 

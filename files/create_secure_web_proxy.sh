@@ -51,7 +51,7 @@ function create_certificate() {
   check_exit
 
   gcloud certificate-manager certificates create $CERTIFICATE_NAME --certificate-file="$HOME/${CERTIFICATE_NAME}.pem" \
-    --private-key-file="$HOME/${KEY_NAME}.pem" --location=${REGION}
+    --private-key-file="$HOME/${KEY_NAME}.pem" --location=${REGION} --project=${PROJECT_ID}
   check_exit
 }
 
@@ -71,7 +71,7 @@ EOF
   sed -i '' "s/POLICY_NAME/${POLICY_NAME}/" $HOME/$POLICY_FILE
   check_exit
 
-  gcloud network-security gateway-security-policies import ${POLICY_NAME} --source="$HOME/${POLICY_FILE}" --location=${REGION}
+  gcloud network-security gateway-security-policies import ${POLICY_NAME} --source="$HOME/${POLICY_FILE}" --location=${REGION} --project=${PROJECT_ID}
   check_exit
 }
 
@@ -96,7 +96,7 @@ check_exit
 sed -i '' "s/URL_NAME/${URL_NAME}/" $HOME/${URL_FILE}
 check_exit
 
-gcloud network-security url-lists import ${URL_NAME} --location=${REGION} --project=${PROJECT_ID} --source="$HOME/${URL_FILE}"
+gcloud network-security url-lists import ${URL_NAME} --location=${REGION} --project=${PROJECT_ID} --source="$HOME/${URL_FILE}" 
 
 }
 
@@ -123,7 +123,7 @@ EOF
   check_exit
   sed -i '' "s/URL_NAME/${URL_NAME}/" $HOME/${RULE_FILE}
   check_exit
-  gcloud network-security gateway-security-policies rules import ${RULE_NAME} --source=$HOME/${RULE_FILE} --location=${REGION} --gateway-security-policy=${POLICY_NAME}
+  gcloud network-security gateway-security-policies rules import ${RULE_NAME} --source=$HOME/${RULE_FILE} --location=${REGION} --project=${PROJECT_ID} --gateway-security-policy=${POLICY_NAME}
   check_exit
 
 }
@@ -159,7 +159,7 @@ check_exit
   sed -i '' "s/SUBNET_NAME/${SUBNET_NAME}/" $HOME/$GATEWAY_FILE
   check_exit
 
-  gcloud network-services gateways import $GATEWAY_NAME --source=$HOME/$GATEWAY_FILE --location=${REGION}
+  gcloud network-services gateways import $GATEWAY_NAME --source=$HOME/$GATEWAY_FILE --location=${REGION} --project=${PROJECT_ID}
   check_exit
 
 }
