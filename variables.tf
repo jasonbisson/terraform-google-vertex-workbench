@@ -1,5 +1,5 @@
 /**
- * Copyright 2019 Google LLC
+ * Copyright 2024 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ variable "billing_account" {
 variable "project_name" {
   description = "Prefix of Google Project name"
   type        = string
-  default = "prj"
+  default     = "prj"
 }
 
 variable "environment" {
@@ -72,16 +72,26 @@ variable "gpu_type" {
 variable "install_gpu_driver" {
   description = "Install GPU drivers"
   type        = string
-  default     = true
+  default     = false
 }
 
-variable "disk_size_gb" {
+variable "boot_disk_size_gb" {
   description = "Boot disk size in GB"
   default     = "100"
 }
 
-variable "disk_type" {
+variable "boot_disk_type" {
   description = "Boot disk type, can be either pd-ssd, local-ssd, or pd-standard"
+  default     = "PD_STANDARD"
+}
+
+variable "data_disk_size_gb" {
+  description = "The size of the disk in GB attached to this VM instance, up to a maximum of 64000 GB (64 TB). If not specified, this defaults to 100."
+  default     = "100"
+}
+
+variable "data_disk_type" {
+  description = "Indicates the type of the disk. Possible values are: PD_STANDARD, PD_SSD, PD_BALANCED, PD_EXTREME."
   default     = "PD_STANDARD"
 }
 
@@ -97,18 +107,20 @@ variable "labels" {
   default     = {}
 }
 
-variable "source_image_family" {
+variable "workbench_source_image_family" {
   description = "The OS Image family"
   type        = string
-  default     = "common-cpu-notebooks-ubuntu-2004"
+  default     = "workbench-instances"
+  # https://cloud.google.com/vertex-ai/docs/workbench/instances/create-specific-version
   #gcloud compute images list --project deeplearning-platform-release
 }
 
-variable "source_image_project" {
+variable "workbench_source_image_project" {
   description = "Google Cloud project with OS Image"
   type        = string
-  default     = "deeplearning-platform-release"
+  default     = "cloud-notebooks-managed"
 }
+
 
 variable "instance_owners" {
   description = "User Email address that will own Vertex Workbench"
