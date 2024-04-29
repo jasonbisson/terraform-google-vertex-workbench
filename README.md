@@ -10,7 +10,6 @@ The resources/services/activations/deletions that this module will create/trigge
 - Create a isolated VPC Network
 - Create multiple private DNS zones for googleapis and notebook domains
 - Creates a Vertex Workbench instances within isolated network
-- Optional Secure Web Proxy script to allow code downloads from 
 
 ## Usage
 
