@@ -33,6 +33,7 @@ module "project" {
     "aiplatform.googleapis.com",
     "networkservices.googleapis.com",
     "certificatemanager.googleapis.com",
+    "dataform.googleapis.com",
     "storage.googleapis.com"
   ]
 }
@@ -182,7 +183,6 @@ resource "google_storage_bucket_iam_binding" "bucket_iam" {
 resource "google_workbench_instance" "vertex_workbench_instance" {
   project         = module.project.project_id
   name            = "${var.environment}-${random_id.random_suffix.hex}"
-  service_account = google_service_account.main.email
   location        = var.zone
 
   gce_setup {
@@ -195,7 +195,6 @@ resource "google_workbench_instance" "vertex_workbench_instance" {
       family  = var.workbench_source_image_family
     }
 
-    post_startup_script = data.template_file.startup_script_config.rendered
     machine_type        = var.machine_type
 
     shielded_instance_config {
@@ -214,7 +213,7 @@ resource "google_workbench_instance" "vertex_workbench_instance" {
       disk_size_gb = var.data_disk_size_gb
     }
 
-    disable_public_ip    = false
+    disable_public_ip    = true
     enable_ip_forwarding = false
 
     network_interfaces {
@@ -222,9 +221,6 @@ resource "google_workbench_instance" "vertex_workbench_instance" {
       subnet   = google_compute_subnetwork.workbench.id
       nic_type = "GVNIC"
     }
-
-    network = google_compute_network.vpc_network.id
-    subnet  = google_compute_subnetwork.workbench.id
 
     metadata = {
       terraform                    = "true"

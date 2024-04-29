@@ -77,7 +77,7 @@ variable "install_gpu_driver" {
 
 variable "boot_disk_size_gb" {
   description = "Boot disk size in GB"
-  default     = "100"
+  default     = "150"
 }
 
 variable "boot_disk_type" {
