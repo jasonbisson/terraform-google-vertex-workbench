@@ -2,4 +2,4 @@ org_id = "123456789"
 billing_account = "123456-123456-123456"
 environment     = "vertex"
 folder_id       = "123456"
-instance_owners = ["your_id@example.com"]
+instance_owners = ["user1@example.com", "user2@example.com"]

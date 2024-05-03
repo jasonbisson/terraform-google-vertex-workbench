@@ -47,29 +47,49 @@ resource "random_id" "random_suffix" {
   byte_length = 4
 }
 
-resource "google_service_account" "main" {
+# Create service accounts for users
+resource "google_service_account" "user_service_accounts" {
   project      = module.project.project_id
-  account_id   = "${var.environment}-${random_id.random_suffix.hex}"
-  display_name = "${var.environment}${random_id.random_suffix.hex}"
+  for_each     = toset(split("\n", replace(join("\n", tolist(var.instance_owners)), "/\\S+:/", "")))
+  account_id   = "${var.environment}-${split("@", replace(each.value, "/[.'_]+/", "-"))[0]}"
+  display_name = "Workbench Service Account for ${each.value}"
 }
 
-resource "google_project_iam_member" "notebook_iam_compute" {
-  project = module.project.project_id
-  role    = "roles/compute.admin"
-  member  = "serviceAccount:${google_service_account.main.email}"
+resource "google_service_account_iam_binding" "service_account_user" {
+  for_each = toset(split("\n", replace(join("\n", tolist(var.instance_owners)), "/\\S+:/", "")))
+  #service_account_id = "projects/your-project-id/serviceAccounts/my-service-account-123@your-project-id.iam.gserviceaccount.com"  
+  service_account_id = "projects/${module.project.project_id}/serviceAccounts/${var.environment}-${split("@", replace(each.value, "/[.'_]+/", "-"))[0]}@${module.project.project_id}.iam.gserviceaccount.com"
+  role               = "roles/iam.serviceAccountUser"
+  members = [
+    "user:${each.value}",
+  ]
 }
 
-resource "google_project_iam_member" "source_repo" {
-  project = module.project.project_id
-  role    = "roles/source.reader"
-  member  = "serviceAccount:${google_service_account.main.email}"
-}
+# resource "google_project_iam_member" "notebook_iam_compute" {
+#   project = module.project.project_id
+#   role    = "roles/compute.admin"
+#   member  = "serviceAccount:${google_service_account.main.email}"
+# }
 
-resource "google_project_iam_member" "notebook_iam_serviceaccount" {
-  project = module.project.project_id
-  role    = "roles/iam.serviceAccountUser"
-  member  = "serviceAccount:${google_service_account.main.email}"
-}
+# resource "google_project_iam_member" "source_repo" {
+#   project = module.project.project_id
+#   role    = "roles/source.reader"
+#   member  = "serviceAccount:${google_service_account.main.email}"
+# }
+
+# resource "google_project_iam_member" "notebook_iam_serviceaccount" {
+#   project = module.project.project_id
+#   role    = "roles/iam.serviceAccountUser"
+#   member  = "serviceAccount:${google_service_account.main.email}"
+# }
+
+# resource "google_storage_bucket_iam_binding" "bucket_iam" {
+#   bucket = google_storage_bucket.bucket.name
+#   role   = "roles/storage.admin"
+#   members = [
+#     "serviceAccount:${google_service_account.main.email}"
+#   ]
+# }
 
 resource "google_compute_network" "vpc_network" {
   project                 = module.project.project_id
@@ -87,7 +107,6 @@ resource "google_compute_subnetwork" "workbench" {
   network                  = google_compute_network.vpc_network.name
 
 }
-
 
 resource "google_compute_subnetwork" "proxy" {
   project       = module.project.project_id
@@ -171,23 +190,17 @@ resource "google_storage_bucket_object" "post_startup_script" {
   depends_on = [google_storage_bucket.bucket]
 }
 
-resource "google_storage_bucket_iam_binding" "bucket_iam" {
-  bucket = google_storage_bucket.bucket.name
-  role   = "roles/storage.admin"
-  members = [
-    "serviceAccount:${google_service_account.main.email}"
-  ]
-}
-
 
 resource "google_workbench_instance" "vertex_workbench_instance" {
-  project         = module.project.project_id
-  name            = "${var.environment}-${random_id.random_suffix.hex}"
-  location        = var.zone
+  project  = module.project.project_id
+  for_each = toset(split("\n", replace(join("\n", tolist(var.instance_owners)), "/\\S+:/", "")))
+  name     = format("${var.environment}-%s-%s", split("@", replace(each.value, "/[.'_]+/", "-"))[0], random_id.random_suffix.hex)
+  location = var.zone
 
   gce_setup {
+
     service_accounts {
-      email = google_service_account.main.email
+      email = "${var.environment}-${split("@", replace(each.value, "/[.'_]+/", "-"))[0]}@${module.project.project_id}.iam.gserviceaccount.com"
     }
 
     vm_image {
@@ -195,7 +208,7 @@ resource "google_workbench_instance" "vertex_workbench_instance" {
       family  = var.workbench_source_image_family
     }
 
-    machine_type        = var.machine_type
+    machine_type = var.machine_type
 
     shielded_instance_config {
       enable_secure_boot          = true
@@ -233,6 +246,7 @@ resource "google_workbench_instance" "vertex_workbench_instance" {
       notebook-disable-nbconvert   = "true"
       notebook-upgrade-schedule    = "00 19 * * SUN"
     }
+
     tags = ["workbench-instance-terraform"]
   }
 
@@ -242,8 +256,8 @@ resource "google_workbench_instance" "vertex_workbench_instance" {
 
   # If true, forces to use an SSH tunnel.
   disable_proxy_access = false
-  instance_owners      = var.instance_owners
+  instance_owners      = [each.value]
   desired_state        = "ACTIVE"
 
-  depends_on = [google_storage_bucket.bucket, google_storage_bucket_object.post_startup_script]
+  depends_on = [google_storage_bucket.bucket, google_storage_bucket_object.post_startup_script, google_service_account_iam_binding.service_account_user]
 }
