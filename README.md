@@ -5,7 +5,7 @@ This module creates an isolated Vertex Workbench to provide a tactical solution 
 The resources/services/activations/deletions that this module will create/trigger are:
 
 - Create a project
-- Create a service account for Vertex Workbench
+- Create a service account or accounts per user Vertex Workbench instances
 - Create a GCS bucket
 - Create a isolated VPC Network
 - Create multiple private DNS zones for googleapis and notebook domains
@@ -32,19 +32,6 @@ cd ~/terraform-google-vertex-workbench/
 terraform init
 terraform plan
 terraform apply
-```
-
-4. Optional deployment of Secure Web Proxy
-```
-Create:
-cd ~/terraform-google-vertex-workbench/files 
-mv source.env.template source.env
-##Update required variables
-./create_secure_web_proxy.sh --project_id <Vertex Workbench Project ID >
-
-Destroy if you don't need or want it:
-./destroy_secure_web_proxy.sh --project_id <Vertex Workbench Project ID >
-
 ```
 
 <!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
