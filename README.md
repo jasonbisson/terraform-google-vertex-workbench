@@ -5,7 +5,7 @@ This module creates an isolated Vertex Workbench to provide a tactical solution 
 The resources/services/activations/deletions that this module will create/trigger are:
 
 - Create a project
-- Create a service account or accounts per user Vertex Workbench instances
+- Create a service account per human user 
 - Create a GCS bucket
 - Create a isolated VPC Network
 - Create multiple private DNS zones for googleapis and notebook domains
