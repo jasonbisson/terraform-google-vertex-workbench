@@ -16,7 +16,7 @@
 
 
 resource "google_compute_firewall" "ssh" {
-  project     = module.project.project_id
+  project     = var.project_id
   name        = "allow-ssh"
   network     = google_compute_network.vpc_network.name
   priority    = 999

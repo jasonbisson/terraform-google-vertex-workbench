@@ -14,92 +14,45 @@
  * limitations under the License.
  */
 
-module "project" {
-  source  = "terraform-google-modules/project-factory/google"
-  version = "~> 14.5"
-
-  name              = "${var.project_name}-${var.environment}-${random_id.random_suffix.hex}"
-  random_project_id = "false"
-  org_id            = var.org_id
-  folder_id         = var.folder_id
-  billing_account   = var.billing_account
-
-  activate_apis = [
-    "iam.googleapis.com",
-    "compute.googleapis.com",
-    "dns.googleapis.com",
-    "notebooks.googleapis.com",
-    "containerregistry.googleapis.com",
-    "aiplatform.googleapis.com",
-    "networkservices.googleapis.com",
-    "certificatemanager.googleapis.com",
-    "dataform.googleapis.com",
-    "storage.googleapis.com"
-  ]
-}
-
-
-data "template_file" "startup_script_config" {
-  template = file("${path.module}/files/post_startup_script.sh")
-}
-
 resource "random_id" "random_suffix" {
   byte_length = 4
 }
 
-# Create service accounts for users
-resource "google_service_account" "user_service_accounts" {
-  project      = module.project.project_id
+resource "google_project_service" "project_services" {
+  project                    = var.project_id
+  count                      = var.enable_apis ? length(var.activate_apis) : 0
+  service                    = element(var.activate_apis, count.index)
+  disable_on_destroy         = var.disable_services_on_destroy
+  disable_dependent_services = var.disable_dependent_services
+}
+
+resource "google_service_account" "user_managed_service_accounts" {
+  project      = var.project_id
   for_each     = toset(split("\n", replace(join("\n", tolist(var.instance_owners)), "/\\S+:/", "")))
   account_id   = "${var.environment}-${split("@", replace(each.value, "/[.'_]+/", "-"))[0]}"
   display_name = "Workbench Service Account for ${each.value}"
 }
 
 resource "google_service_account_iam_binding" "service_account_user" {
-  for_each = toset(split("\n", replace(join("\n", tolist(var.instance_owners)), "/\\S+:/", "")))
-  #service_account_id = "projects/your-project-id/serviceAccounts/my-service-account-123@your-project-id.iam.gserviceaccount.com"  
-  service_account_id = "projects/${module.project.project_id}/serviceAccounts/${var.environment}-${split("@", replace(each.value, "/[.'_]+/", "-"))[0]}@${module.project.project_id}.iam.gserviceaccount.com"
+  for_each           = toset(split("\n", replace(join("\n", tolist(var.instance_owners)), "/\\S+:/", "")))
+  service_account_id = "projects/${var.project_id}/serviceAccounts/${var.environment}-${split("@", replace(each.value, "/[.'_]+/", "-"))[0]}@${var.project_id}.iam.gserviceaccount.com"
   role               = "roles/iam.serviceAccountUser"
   members = [
     "user:${each.value}",
   ]
+
+  depends_on = [google_service_account.user_managed_service_accounts]
 }
 
-# resource "google_project_iam_member" "notebook_iam_compute" {
-#   project = module.project.project_id
-#   role    = "roles/compute.admin"
-#   member  = "serviceAccount:${google_service_account.main.email}"
-# }
-
-# resource "google_project_iam_member" "source_repo" {
-#   project = module.project.project_id
-#   role    = "roles/source.reader"
-#   member  = "serviceAccount:${google_service_account.main.email}"
-# }
-
-# resource "google_project_iam_member" "notebook_iam_serviceaccount" {
-#   project = module.project.project_id
-#   role    = "roles/iam.serviceAccountUser"
-#   member  = "serviceAccount:${google_service_account.main.email}"
-# }
-
-# resource "google_storage_bucket_iam_binding" "bucket_iam" {
-#   bucket = google_storage_bucket.bucket.name
-#   role   = "roles/storage.admin"
-#   members = [
-#     "serviceAccount:${google_service_account.main.email}"
-#   ]
-# }
-
 resource "google_compute_network" "vpc_network" {
-  project                 = module.project.project_id
+  project                 = var.project_id
   name                    = "${var.environment}-${random_id.random_suffix.hex}"
   auto_create_subnetworks = false
   mtu                     = 1460
 }
 
 resource "google_compute_subnetwork" "workbench" {
-  project                  = module.project.project_id
+  project                  = var.project_id
   name                     = "${var.environment}-${random_id.random_suffix.hex}-workbench"
   ip_cidr_range            = "10.2.0.0/16"
   region                   = var.region
@@ -109,7 +62,7 @@ resource "google_compute_subnetwork" "workbench" {
 }
 
 resource "google_compute_subnetwork" "proxy" {
-  project       = module.project.project_id
+  project       = var.project_id
   name          = "${var.environment}-${random_id.random_suffix.hex}-web-proxy"
   network       = google_compute_network.vpc_network.name
   region        = var.region
@@ -119,7 +72,7 @@ resource "google_compute_subnetwork" "proxy" {
 }
 
 resource "google_compute_firewall" "egress" {
-  project            = module.project.project_id
+  project            = var.project_id
   name               = "deny-all-egress"
   description        = "Block all egress ${var.environment}"
   network            = google_compute_network.vpc_network.name
@@ -132,7 +85,7 @@ resource "google_compute_firewall" "egress" {
 }
 
 resource "google_compute_firewall" "ingress" {
-  project       = module.project.project_id
+  project       = var.project_id
   name          = "deny-all-ingress"
   description   = "Block all Ingress ${var.environment}"
   network       = google_compute_network.vpc_network.name
@@ -145,7 +98,7 @@ resource "google_compute_firewall" "ingress" {
 }
 
 resource "google_compute_firewall" "googleapi_egress" {
-  project            = module.project.project_id
+  project            = var.project_id
   name               = "allow-googleapi-egress"
   description        = "Allow connectivity to storage ${var.environment}"
   network            = google_compute_network.vpc_network.name
@@ -160,7 +113,7 @@ resource "google_compute_firewall" "googleapi_egress" {
 
 
 resource "google_compute_firewall" "secure_web_proxy_egress" {
-  project            = module.project.project_id
+  project            = var.project_id
   name               = "secure-web-proxy"
   description        = "Allow secure web proxy connectivity ${var.environment}"
   network            = google_compute_network.vpc_network.name
@@ -173,9 +126,14 @@ resource "google_compute_firewall" "secure_web_proxy_egress" {
   }
 }
 
+
+data "template_file" "startup_script_config" {
+  template = file("${path.module}/files/post_startup_script.sh")
+}
+
 resource "google_storage_bucket" "bucket" {
-  project                     = module.project.project_id
-  name                        = "${module.project.project_id}-${random_id.random_suffix.hex}"
+  project                     = var.project_id
+  name                        = "${var.project_id}-${random_id.random_suffix.hex}"
   location                    = var.region
   force_destroy               = true
   uniform_bucket_level_access = true
@@ -192,7 +150,7 @@ resource "google_storage_bucket_object" "post_startup_script" {
 
 
 resource "google_workbench_instance" "vertex_workbench_instance" {
-  project  = module.project.project_id
+  project  = var.project_id
   for_each = toset(split("\n", replace(join("\n", tolist(var.instance_owners)), "/\\S+:/", "")))
   name     = format("${var.environment}-%s-%s", split("@", replace(each.value, "/[.'_]+/", "-"))[0], random_id.random_suffix.hex)
   location = var.zone
@@ -200,7 +158,7 @@ resource "google_workbench_instance" "vertex_workbench_instance" {
   gce_setup {
 
     service_accounts {
-      email = "${var.environment}-${split("@", replace(each.value, "/[.'_]+/", "-"))[0]}@${module.project.project_id}.iam.gserviceaccount.com"
+      email = "${var.environment}-${split("@", replace(each.value, "/[.'_]+/", "-"))[0]}@${var.project_id}.iam.gserviceaccount.com"
     }
 
     vm_image {
